@@ -23,11 +23,11 @@ class Blosum:
     def __init__(self):
 
         # Fields are populated by the read_file() method
-        self.type = ""          # ex. "BLOSUM62"
+        self.type = ""         # ex. "BLOSUM62"
         self._headers = []     # [ Header1, Header2, ... ]
         self._matrix = {}      # { LabelA: { LabelA: Score, LabelB: Score, ...}, LabelB: {...}, ...}
-        self.gapInit = 0        # Gap initiation cost
-        self.gapExtend = 0      # Gap extension cost
+        self.gapInitCost = 0        # Gap initiation cost
+        self.gapExtendCost = 0      # Gap extension cost
 
 
     def _next_line(self, file):
@@ -94,10 +94,10 @@ class Blosum:
 
             for i in range(len(tokens)):
                 colLabel = self._headers[i]
-                self._matrix[rowLabel][colLabel] = tokens[i]
+                self._matrix[rowLabel][colLabel] = int(tokens[i])
 
                 if rowLabel != colLabel:
-                    self._matrix[colLabel][rowLabel] = tokens[i]
+                    self._matrix[colLabel][rowLabel] = int(tokens[i])
 
             # Skip empty lines and increment rowNum
             tokens = self._next_line(f)
@@ -109,7 +109,7 @@ class Blosum:
     def _read_gaps(self, f, firstLine):
         """
         Reads the gap initiation and gap extension costs from file f, and stores the
-        data in members gapInit and gapExtend
+        data in members gapInitCost and gapExtendCost
         :param f: the file from which to read the gap costs
         :param firstLine: a list of strings, representing the line containing the gap initiation cost
         """
@@ -117,22 +117,32 @@ class Blosum:
         gapRegex = re.compile(r"^Gap_initiation = -?\d+$")
         if not gapRegex.search(' '.join(firstLine)):
             raise Exception("Invalid file format.  Next line must be 'Gap_initation = {int}'")
-        self.gapInit = int(firstLine[2])
+        self.gapInitCost = int(firstLine[2])
 
         # Assume the next non-empty line is "Gap_extension = {int}"
         tokens = self._next_line(f)
         gapRegex = re.compile(r"^Gap_extension = -?\d+$")
         if not gapRegex.search(' '.join(tokens)):
             raise Exception("Invalid file format.  Next line must be 'Gap_extension = {int}'")
-        self.gapExtend = int(tokens[2])
+        self.gapExtendCost = int(tokens[2])
 
 
-    def get_score(self, a, b):
+    def get_similarity_score(self, a, b):
         """
-        Returns the score of amino acids a and b, as specified by the BLOSUM matrix
+        Returns the similarity score of amino acids a and b, as specified by the BLOSUM matrix
         :param a: a character representing an amino acid in the BLOSUM matrix
         :param b: a character representing an amino acid in the BLOSUM matrix
-        :return: the BLOSUM score of amino acids a and b
+        :return: the BLOSUM similarity score of amino acids a and b
         """
         return self._matrix[a][b]
+
+
+    def get_distance_score(self, a, b):
+        """
+        Returns the distance score of amino acids a and b, as specified by the BLOSUM matrix
+        :param a: a character representing an amino acid in the BLOSUM matrix
+        :param b: a character representing an amino acid in the BLOSUM matrix
+        :return: the BLOSUM distance score of amino acids a and b
+        """
+        return (self._matrix[a][a] + self._matrix[b][b]) / 2 - self._matrix[a][b]
 

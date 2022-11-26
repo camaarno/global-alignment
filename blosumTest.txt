@@ -1,0 +1,12 @@
+                            BLOSUM62
+
+    C  S  T  P  Q  A
+C   1
+S  -1  1
+T  -1 -1  1
+P  -1 -1 -1  1
+Q  -1 -1 -1 -1  1
+A  -1 -1 -1 -1 -1  1
+
+Gap_initiation = -3
+Gap_extension = -1
