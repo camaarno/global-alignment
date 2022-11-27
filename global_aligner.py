@@ -50,15 +50,11 @@ class GlobalAligner:
 
     def align(self, seqX, seqY):
 
+        if not seqX or not seqY:
+            return seqX, seqY
+
         self.seqX = seqX
         self.seqY = seqY
-
-        if len(seqX) == 0 and len(seqY) == 0:
-            return ()
-        elif len(seqX) == 0:
-            return ()
-        elif len(seqY) == 0:
-            return ()
 
         self.init_matrices()
         self.compute_matrices()

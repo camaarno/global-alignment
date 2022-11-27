@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 
-from global_alignment import GlobalAligner
+from global_aligner import GlobalAligner
+from sequence_reader import SequenceReader
 
 
 
-SEQ_A = "CQP"
-SEQ_B = "CSQATP"
+sr = SequenceReader()
+seqA, seqB = sr.read_file('./sequences.txt')
 
 ga = GlobalAligner()
 ga.set_blosum('./blosumTest.txt')
-result = ga.distance_alignment(SEQ_A, SEQ_B)
+result = ga.distance_alignment(seqA, seqB)
 print(result)
 
 '''
