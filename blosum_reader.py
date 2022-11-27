@@ -14,7 +14,7 @@ as a hash table, allowing for quick access to scores in the matrix.
 import re
 
 
-class Blosum:
+class BlosumReader:
     """
     Wrapper class for a BLOSUM matrix. Allows users to read in a file representing
     a BLOSUM matrix, which is stored hash table for quick access

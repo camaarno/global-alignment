@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from blosum import Blosum
+from blosum_reader import BlosumReader
 from operator import lt, gt
 
 
@@ -22,7 +22,7 @@ class GlobalAligner:
         self.matrixHeight = 0   # height of each matrix
         self.matrixWidth = 0    # width of each matrix
 
-        self.blosum = Blosum()
+        self.blosum = BlosumReader()
         self.gapInitCost = 0    # gap initiation cost
         self.gapExtendCost = 0  # gap extension cost
 
