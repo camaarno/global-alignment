@@ -128,14 +128,14 @@ class GlobalAligner:
                     self.alignmentMatrix[i][j] = (costI, self.INSERTION_SYMBOL) if self.compare_function(costI, costD) else (costD, self.DELETION_SYMBOL)
 
     def traceback_matrices(self):
-        alignX = []
-        alignY = []
-        score = 0
 
         i = self.matrixHeight - 1
         j = self.matrixWidth - 1
         currentMatrix = self.ALIGNMENT_SYMBOL
         matrix = self.alignmentMatrix
+
+        alignX = []
+        alignY = []
 
         while i > 0 and j > 0:
 
@@ -175,5 +175,7 @@ class GlobalAligner:
 
         alignX = ''.join(alignX[::-1])
         alignY = ''.join(alignY[::-1])
-        return alignX, alignY
+        score = self.alignmentMatrix[self.matrixHeight - 1][self.matrixWidth - 1][0]
+
+        return alignX, alignY, score
 

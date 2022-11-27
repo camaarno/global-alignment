@@ -15,7 +15,7 @@ def is_valid_file(parser, filePath):
         return filePath
     parser.error("The file %s does not exist!" % filePath)
 
-parser = argparse.ArgumentParser(description='The game server')
+parser = argparse.ArgumentParser(description='Global Alignment Program')
 parser.add_argument('mode', type=str, choices=['distance', 'similarity'],
                     help="The type of global alignment to be performed.")
 parser.add_argument('sequences_file', type=lambda x: is_valid_file(parser, x),
@@ -37,16 +37,20 @@ ga.set_blosum(args.blosum_file)
 
 result = None
 if args.mode == 'similarity':
-    result = ga.similarity_alignment(seqA, seqB)
+    alignA, alignB, score = ga.similarity_alignment(seqA, seqB)
 else:
-    result = ga.distance_alignment(seqA, seqB)
+    alignA, alignB, score = ga.distance_alignment(seqA, seqB)
 
-print(result[0])
-print(result[1])
+print("Sequence A:")
+print(alignA, end="\n\n")
+print("Sequence B:")
+print(alignB, end="\n\n")
+print("Score: ", score)
 
 
 
-'''
+
+''' TESTING
 for row in ga.alignmentMatrix:
     for col in row:
         print(('N/A' if col == None else int(col[0])), "\t", end="")
