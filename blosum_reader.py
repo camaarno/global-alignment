@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 
 """
-Contains a class representing a BLOSUM matrix. After instantiation, users may provide a file
-path to the class through the read_file() method.  Data from the file is stored in the object
-as a hash table, allowing for quick access to scores in the matrix.
+Contains the BlosumReader class.
 """
 
 """

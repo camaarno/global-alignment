@@ -2,8 +2,8 @@
 
 import argparse
 from os import path
-from global_aligner import GlobalAligner
 from sequence_reader import SequenceReader
+from global_aligner import GlobalAligner
 
 
 #=========================================================================
@@ -35,7 +35,6 @@ seqA, seqB = sr.read_file(args.sequences_file)
 ga = GlobalAligner()
 ga.set_blosum(args.blosum_file)
 
-result = None
 if args.mode == 'similarity':
     alignA, alignB, score = ga.similarity_alignment(seqA, seqB)
 else:

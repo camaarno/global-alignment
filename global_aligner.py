@@ -1,40 +1,70 @@
 #!/usr/bin/env python
 
-from blosum_reader import BlosumReader
-from operator import lt, gt
+"""
+Contains the GlobalAligner class
+"""
+
+"""
+@Author: Cameron Arnold
+@Data: November 27th, 2022
+"""
+
+
+from blosum_reader import BlosumReader  # used to read BLOSUM file
+from operator import lt, gt             # used to compare scores
 
 
 class GlobalAligner:
+    """
+    Computes similarity and distance alignments on provided sequences, using
+    the affine indel gap model fit sequence alignment
+    """
 
     ALIGNMENT_SYMBOL = "A"
     DELETION_SYMBOL = "D"
     INSERTION_SYMBOL = "I"
-
     GAP_SYMBOL = '-'
 
     def __init__(self):
-        self.alignmentMatrix = []   # optimal alignment matrix (A)
-        self.deletionMatrix = []    # alignment ends with deletion (D)
-        self.insertionMatrix = []   # alignment ends with insertion (I)
-        self.seqX = ""              # horizontal sequence
-        self.seqY = ""              # vertical sequence
 
-        self.matrixHeight = 0   # height of each matrix
-        self.matrixWidth = 0    # width of each matrix
+        self.seqX = ""                  # horizontal sequence
+        self.seqY = ""                  # vertical sequence
 
-        self.blosum = BlosumReader()
-        self.gapInitCost = 0    # gap initiation cost
-        self.gapExtendCost = 0  # gap extension cost
+        self.blosum = BlosumReader()    # BLOSUM file reader
+        self.gapInitCost = 0            # gap initiation cost
+        self.gapExtendCost = 0          # gap extension cost
+
+        self.alignmentMatrix = []       # optimal alignment matrix (A)
+        self.deletionMatrix = []        # alignment ends with deletion (D)
+        self.insertionMatrix = []       # alignment ends with insertion (I)
+
+        self.matrixHeight = 0           # height of each matrix
+        self.matrixWidth = 0            # width of each matrix
 
         self.compare_function = None    # lt / gt
         self.score_function = None      # blosum.get_similarity_score / blosum.get_distance_score
 
 
-    def set_blosum(self, filePath):
-        self.blosum.read_file(filePath)
+    def set_blosum(self, path):
+        """
+        Get the BLOSUM matrix and gap costs from the file at the provided path.
+        See user manual for more information on the file format required.
+        :param path: the file path
+        :type path: str
+        """
+        self.blosum.read_file(path)
 
 
     def distance_alignment(self, seqX, seqY):
+        """
+        Compute the global distance alignment of seqX and seqY
+        :param seqX: an amino acid sequence
+        :type seqX: str
+        :param seqY: an amino acid sequence
+        :type seqY: str
+        :return: an aligned seqX, an aligned seqY, and the score
+        :rtype: tuple
+        """
         self.compare_function = lt
         self.score_function = self.blosum.get_distance_score
         self.gapInitCost = -self.blosum.gapInitCost
@@ -42,6 +72,15 @@ class GlobalAligner:
         return self.align(seqX, seqY)
 
     def similarity_alignment(self, seqX, seqY):
+        """
+        Compute the global simlarity alignment of seqX and seqY
+        :param seqX: an amino acid sequence
+        :type seqX: str
+        :param seqY: an amino acid sequence
+        :type seqY: str
+        :return: an aligned seqX, an aligned seqY, and the score
+        :rtype: tuple
+        """
         self.compare_function = gt
         self.score_function = self.blosum.get_similarity_score
         self.gapInitCost = self.blosum.gapInitCost
@@ -49,6 +88,16 @@ class GlobalAligner:
         return self.align(seqX, seqY)
 
     def align(self, seqX, seqY):
+        """
+        Compute the alignment of seqX and seqY.  Requires that compare_function,
+        score_function, gapInitCost, and gapExtend cost are set to a valid value
+        :param seqX: an amino acid sequence
+        :type seqX: str
+        :param seqY: an amino acid sequence
+        :type seqY: str
+        :return: an aligned seqX, an aligned seqY, and the score
+        :rtype: tuple
+        """
 
         if not seqX or not seqY:
             return seqX, seqY
@@ -63,7 +112,9 @@ class GlobalAligner:
 
 
     def init_matrices(self):
-
+        """
+        Initialize the three matrices
+        """
         self.matrixWidth = len(self.seqX) + 1
         self.matrixHeight = len(self.seqY) + 1
 
@@ -73,6 +124,10 @@ class GlobalAligner:
 
 
     def init_alignment_matrix(self):
+        """
+        Initialize the alignment matrix (A) by allocating space for the matrix and setting
+        the values for the first row and the first column
+        """
 
         self.alignmentMatrix = [[None for j in range(self.matrixWidth)] for i in range(self.matrixHeight)]
         self.alignmentMatrix[0][0] = (0, None)
@@ -85,6 +140,10 @@ class GlobalAligner:
 
 
     def init_insertion_matrix(self):
+        """
+        Initialize the insertion matrix (I) by allocating space for the matrix, and setting
+        the values of the first column
+        """
 
         self.insertionMatrix = [[None for j in range(self.matrixWidth)] for i in range(self.matrixHeight)]
 
@@ -93,6 +152,10 @@ class GlobalAligner:
 
 
     def init_deletion_matrix(self):
+        """
+        Initialize the deletion matrix (D) by allocating space for the matrix, and setting
+        the values of the first row
+        """
 
         self.deletionMatrix = [[None for j in range(self.matrixWidth)] for i in range(self.matrixHeight)]
 
@@ -101,6 +164,10 @@ class GlobalAligner:
 
 
     def compute_matrices(self):
+        """
+        Populate the three matrices using the affine indel gap model global sequence
+        alignment algorithm
+        """
 
         #costD = None
         #costI = None
@@ -128,6 +195,11 @@ class GlobalAligner:
                     self.alignmentMatrix[i][j] = (costI, self.INSERTION_SYMBOL) if self.compare_function(costI, costD) else (costD, self.DELETION_SYMBOL)
 
     def traceback_matrices(self):
+        """
+        Traceback the three matrices in order to compute the alignment
+        :return: an aligned seqX, an aligned seqY, and the score
+        :rtype: tuple
+        """
 
         i = self.matrixHeight - 1
         j = self.matrixWidth - 1
