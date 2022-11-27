@@ -2,7 +2,6 @@
 
 import argparse
 from os import path
-from sys import exit
 from global_aligner import GlobalAligner
 from sequence_reader import SequenceReader
 
@@ -12,10 +11,9 @@ from sequence_reader import SequenceReader
 # Define our program arguments
 
 def is_valid_file(parser, filePath):
-    if not path.exists(filePath):
-        parser.error("The file %s does not exist!" % filePath)
-    else:
+    if path.exists(filePath):
         return filePath
+    parser.error("The file %s does not exist!" % filePath)
 
 parser = argparse.ArgumentParser(description='The game server')
 parser.add_argument('mode', type=str, choices=['distance', 'similarity'],
