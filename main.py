@@ -6,6 +6,10 @@ from sequence_reader import SequenceReader
 from global_aligner import GlobalAligner
 
 
+MATCH_SYMBOL = '*'
+MISMATCH_SYMBOL = '|'
+GAP_SYMBOL = ' '
+
 #=========================================================================
 
 # Define our program arguments
@@ -40,13 +44,26 @@ if args.mode == 'similarity':
 else:
     alignA, alignB, score = ga.distance_alignment(seqA, seqB)
 
-print("Sequence A:")
-print(alignA, end="\n\n")
-print("Sequence B:")
-print(alignB, end="\n\n")
+# Print the first alignment
+print(alignA)
+
+# Print a row of symbols representing character matches
+symbol = ''
+for i in range(len(alignA)):
+    if alignA[i] == alignB[i]:
+        symbol = MATCH_SYMBOL
+    elif alignA[i] == ga.GAP_SYMBOL or alignB[i] == ga.GAP_SYMBOL:
+        symbol = GAP_SYMBOL
+    else:
+        symbol = MISMATCH_SYMBOL
+    print(symbol, end="")
+print()
+
+# Print the second alignment
+print(alignB)
+
+# Print the score
 print("Score: ", score)
-
-
 
 
 ''' TESTING

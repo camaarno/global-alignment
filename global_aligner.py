@@ -55,55 +55,55 @@ class GlobalAligner:
         self.blosum.read_file(path)
 
 
-    def distance_alignment(self, seqX, seqY):
+    def distance_alignment(self, seqA, seqB):
         """
-        Compute the global distance alignment of seqX and seqY
-        :param seqX: an amino acid sequence
-        :type seqX: str
-        :param seqY: an amino acid sequence
-        :type seqY: str
-        :return: an aligned seqX, an aligned seqY, and the score
+        Compute the global distance alignment of seqA and seqB
+        :param seqA: an amino acid sequence
+        :type seqA: str
+        :param seqB: an amino acid sequence
+        :type seqB: str
+        :return: an aligned seqA, an aligned seqB, and the score
         :rtype: tuple
         """
         self.compare_function = lt
         self.score_function = self.blosum.get_distance_score
         self.gapInitCost = -self.blosum.gapInitCost
         self.gapExtendCost = -self.blosum.gapExtendCost
-        return self.align(seqX, seqY)
+        return self.align(seqA, seqB)
 
-    def similarity_alignment(self, seqX, seqY):
+    def similarity_alignment(self, seqA, seqB):
         """
-        Compute the global simlarity alignment of seqX and seqY
-        :param seqX: an amino acid sequence
-        :type seqX: str
-        :param seqY: an amino acid sequence
-        :type seqY: str
-        :return: an aligned seqX, an aligned seqY, and the score
+        Compute the global simlarity alignment of seqA and seqB
+        :param seqA: an amino acid sequence
+        :type seqA: str
+        :param seqB: an amino acid sequence
+        :type seqB: str
+        :return: an aligned seqA, an aligned seqB, and the score
         :rtype: tuple
         """
         self.compare_function = gt
         self.score_function = self.blosum.get_similarity_score
         self.gapInitCost = self.blosum.gapInitCost
         self.gapExtendCost = self.blosum.gapExtendCost
-        return self.align(seqX, seqY)
+        return self.align(seqA, seqB)
 
-    def align(self, seqX, seqY):
+    def align(self, seqA, seqB):
         """
-        Compute the alignment of seqX and seqY.  Requires that compare_function,
+        Compute the alignment of seqA and seqB.  Requires that compare_function,
         score_function, gapInitCost, and gapExtend cost are set to a valid value
-        :param seqX: an amino acid sequence
-        :type seqX: str
-        :param seqY: an amino acid sequence
-        :type seqY: str
-        :return: an aligned seqX, an aligned seqY, and the score
+        :param seqA: an amino acid sequence
+        :type seqA: str
+        :param seqB: an amino acid sequence
+        :type seqB: str
+        :return: an aligned seqA, an aligned seqB, and the score
         :rtype: tuple
         """
 
-        if not seqX or not seqY:
-            return seqX, seqY
+        if not seqA or not seqB:
+            return seqA, seqB
 
-        self.seqX = seqX
-        self.seqY = seqY
+        self.seqX = seqA
+        self.seqY = seqB
 
         self.init_matrices()
         self.compute_matrices()
@@ -169,21 +169,20 @@ class GlobalAligner:
         alignment algorithm
         """
 
-        #costD = None
-        #costI = None
-        #costA = None
-
         for i in range(1, self.matrixHeight):
             for j in range(1, self.matrixWidth):
 
+                # min/max ( D(i-1,j) + gext,  A(i-1,j) + gini + gext)
                 costD = self.deletionMatrix[i - 1][j][0] + self.gapExtendCost
                 costA = self.alignmentMatrix[i - 1][j][0] + self.gapInitCost + self.gapExtendCost
                 self.deletionMatrix[i][j] = (costD, None) if self.compare_function(costD, costA) else (costA, self.ALIGNMENT_SYMBOL)
 
+                # min/max ( I(i,j-1) + gext,  A(i,j-1) + gini + gext)
                 costI = self.insertionMatrix[i][j - 1][0] + self.gapExtendCost
                 costA = self.alignmentMatrix[i][j - 1][0] + self.gapInitCost + self.gapExtendCost
                 self.insertionMatrix[i][j] = (costI, None) if self.compare_function(costI, costA) else (costA, self.ALIGNMENT_SYMBOL)
 
+                # min/max ( D(i,j),  I(i,j),  A(i-1,j-1) + score(ai, bj))
                 matchScore = self.score_function(self.seqX[j - 1], self.seqY[i - 1])
                 costA = self.alignmentMatrix[i - 1][j - 1][0] + matchScore
                 costI = self.insertionMatrix[i][j][0]
@@ -203,6 +202,7 @@ class GlobalAligner:
 
         i = self.matrixHeight - 1
         j = self.matrixWidth - 1
+        prevMatrix = self.ALIGNMENT_SYMBOL
         currentMatrix = self.ALIGNMENT_SYMBOL
         matrix = self.alignmentMatrix
 
@@ -211,14 +211,19 @@ class GlobalAligner:
 
         while i > 0 and j > 0:
 
-            if currentMatrix == self.ALIGNMENT_SYMBOL:
-                matrix = self.alignmentMatrix
-            elif currentMatrix == self.INSERTION_SYMBOL:
-                matrix = self.insertionMatrix
-            elif currentMatrix == self.DELETION_SYMBOL:
-                matrix = self.deletionMatrix
+            # Keep our matrix reference up-to-date
+            if currentMatrix != prevMatrix:
 
-            _, originMatrix = matrix[i][j]
+                if currentMatrix == self.ALIGNMENT_SYMBOL:
+                    matrix = self.alignmentMatrix
+                elif currentMatrix == self.INSERTION_SYMBOL:
+                    matrix = self.insertionMatrix
+                elif currentMatrix == self.DELETION_SYMBOL:
+                    matrix = self.deletionMatrix
+
+                prevMatrix = currentMatrix
+
+            _, originMatrix = matrix[i][j]  # cell is (score, originMatrix)
 
             if currentMatrix == self.ALIGNMENT_SYMBOL:
                 if originMatrix is None:  # same matrix (A)
