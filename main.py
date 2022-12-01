@@ -22,10 +22,10 @@ def is_valid_file(parser, filePath):
 parser = argparse.ArgumentParser(description='Global Alignment Program')
 parser.add_argument('mode', type=str, choices=['distance', 'similarity'],
                     help="The type of global alignment to be performed.")
-parser.add_argument('sequences_file', type=lambda x: is_valid_file(parser, x),
-                    help="The path to the file containing the two sequences to be compared.")
 parser.add_argument('blosum_file', type=lambda x: is_valid_file(parser, x),
                     help="The path to the file containing the BLOSUM matrix and gap penalties.")
+parser.add_argument('sequences_file', type=lambda x: is_valid_file(parser, x),
+                    help="The path to the file containing the two sequences to be compared.")
 
 args = parser.parse_args()
 
