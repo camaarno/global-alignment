@@ -250,6 +250,16 @@ class GlobalAligner:
                 alignY.append(self.seqY[i - 1])
                 i -= 1
 
+        # add in final gaps
+        while i > 0:
+            alignX.append(self.GAP_SYMBOL)
+            alignY.append(self.seqY[i - 1])
+            i -= 1
+        while j > 0:
+            alignX.append(self.seqX[j - 1])
+            alignY.append(self.GAP_SYMBOL)
+            j -= 1
+
         alignX = ''.join(alignX[::-1])
         alignY = ''.join(alignY[::-1])
         score = self.alignmentMatrix[self.matrixHeight - 1][self.matrixWidth - 1][0]

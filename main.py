@@ -34,36 +34,47 @@ args = parser.parse_args()
 # Run the program
 
 sr = SequenceReader()
-seqA, seqB = sr.read_file(args.sequences_file)
+sr.set_sequences(args.sequences_file)
 
 ga = GlobalAligner()
 ga.set_blosum(args.blosum_file)
 
+alignment_function = None
 if args.mode == 'similarity':
-    alignA, alignB, score = ga.similarity_alignment(seqA, seqB)
+    alignment_function = ga.similarity_alignment
 else:
-    alignA, alignB, score = ga.distance_alignment(seqA, seqB)
+    alignment_function = ga.distance_alignment
 
-# Print the first alignment
-print(alignA)
+for i in range(sr.count - 1):
+    for j in range(i + 1, sr.count):
+        seqA = sr.sequences[i]
+        seqB = sr.sequences[j]
+        alignA, alignB, score = alignment_function(seqA, seqB)
 
-# Print a row of symbols representing character matches
-symbol = ''
-for i in range(len(alignA)):
-    if alignA[i] == alignB[i]:
-        symbol = MATCH_SYMBOL
-    elif alignA[i] == ga.GAP_SYMBOL or alignB[i] == ga.GAP_SYMBOL:
-        symbol = GAP_SYMBOL
-    else:
-        symbol = MISMATCH_SYMBOL
-    print(symbol, end="")
-print()
+        # Print names
+        print(f"Alignment of {sr.proteinNames[i]} ({sr.speciesNames[i]}) and {sr.proteinNames[j]} ({sr.speciesNames[j]})")
 
-# Print the second alignment
-print(alignB)
+        # Print the first alignment
+        print(alignA)
 
-# Print the score
-print("Score: ", score)
+        # Print a row of symbols representing character matches
+        symbol = ''
+        for k in range(len(alignA)):
+            if alignA[k] == alignB[k]:
+                symbol = MATCH_SYMBOL
+            elif alignA[k] == ga.GAP_SYMBOL or alignB[k] == ga.GAP_SYMBOL:
+                symbol = GAP_SYMBOL
+            else:
+                symbol = MISMATCH_SYMBOL
+            print(symbol, end="")
+        print()
+
+        # Print the second alignment
+        print(alignB)
+
+        # Print the score
+        print("Score: ", score)
+        print()
 
 
 ''' TESTING
