@@ -3,7 +3,8 @@
 import argparse
 from os import path
 from sequence_reader import SequenceReader
-from global_aligner import GlobalAligner
+from global_distance_aligner import GlobalDistanceAligner
+from global_similarity_aligner import GlobalSimilarityAligner
 
 
 MATCH_SYMBOL = '*'
@@ -36,20 +37,17 @@ args = parser.parse_args()
 sr = SequenceReader()
 sr.set_sequences(args.sequences_file)
 
-ga = GlobalAligner()
-ga.set_blosum(args.blosum_file)
-
-alignment_function = None
+aligner = None
 if args.mode == 'similarity':
-    alignment_function = ga.similarity_alignment
+    aligner = GlobalSimilarityAligner(args.blosum_file)
 else:
-    alignment_function = ga.distance_alignment
+    aligner = GlobalDistanceAligner(args.blosum_file)
 
 for i in range(sr.count - 1):
     for j in range(i + 1, sr.count):
         seqA = sr.sequences[i]
         seqB = sr.sequences[j]
-        alignA, alignB, score = alignment_function(seqA, seqB)
+        alignA, alignB, score = aligner.align(seqA, seqB)
 
         # Print names
         print(f"Alignment of {sr.proteinNames[i]} ({sr.speciesNames[i]}) and {sr.proteinNames[j]} ({sr.speciesNames[j]})")
@@ -62,7 +60,7 @@ for i in range(sr.count - 1):
         for k in range(len(alignA)):
             if alignA[k] == alignB[k]:
                 symbol = MATCH_SYMBOL
-            elif alignA[k] == ga.GAP_SYMBOL or alignB[k] == ga.GAP_SYMBOL:
+            elif alignA[k] == aligner.GAP_SYMBOL or alignB[k] == aligner.GAP_SYMBOL:
                 symbol = GAP_SYMBOL
             else:
                 symbol = MISMATCH_SYMBOL

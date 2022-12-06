@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Contains the GlobalAligner class
+Contains the GlobalAlignerBase class
 """
 
 """
@@ -11,10 +11,9 @@ Contains the GlobalAligner class
 
 
 from blosum_reader import BlosumReader  # used to read BLOSUM file
-from operator import lt, gt             # used to compare scores
 
 
-class GlobalAligner:
+class GlobalAlignerBase:
     """
     Computes similarity and distance alignments on provided sequences, using
     the affine indel gap model fit sequence alignment
@@ -25,12 +24,14 @@ class GlobalAligner:
     INSERTION_SYMBOL = "I"
     GAP_SYMBOL = '-'
 
-    def __init__(self):
+    def __init__(self, blosumPath):
 
         self.seqX = ""                  # horizontal sequence
         self.seqY = ""                  # vertical sequence
 
-        self.blosum = BlosumReader()    # BLOSUM file reader
+        self.blosum = BlosumReader()        # BLOSUM file reader
+        self.blosum.read_file(blosumPath)   # read BLOSUM file at path
+
         self.gapInitCost = 0            # gap initiation cost
         self.gapExtendCost = 0          # gap extension cost
 
@@ -44,48 +45,6 @@ class GlobalAligner:
         self.compare_function = None    # lt / gt
         self.score_function = None      # blosum.get_similarity_score / blosum.get_distance_score
 
-
-    def set_blosum(self, path):
-        """
-        Get the BLOSUM matrix and gap costs from the file at the provided path.
-        See user manual for more information on the file format required.
-        :param path: the file path
-        :type path: str
-        """
-        self.blosum.read_file(path)
-
-
-    def distance_alignment(self, seqA, seqB):
-        """
-        Compute the global distance alignment of seqA and seqB
-        :param seqA: an amino acid sequence
-        :type seqA: str
-        :param seqB: an amino acid sequence
-        :type seqB: str
-        :return: an aligned seqA, an aligned seqB, and the score
-        :rtype: tuple
-        """
-        self.compare_function = lt
-        self.score_function = self.blosum.get_distance_score
-        self.gapInitCost = -self.blosum.gapInitCost
-        self.gapExtendCost = -self.blosum.gapExtendCost
-        return self.align(seqA, seqB)
-
-    def similarity_alignment(self, seqA, seqB):
-        """
-        Compute the global simlarity alignment of seqA and seqB
-        :param seqA: an amino acid sequence
-        :type seqA: str
-        :param seqB: an amino acid sequence
-        :type seqB: str
-        :return: an aligned seqA, an aligned seqB, and the score
-        :rtype: tuple
-        """
-        self.compare_function = gt
-        self.score_function = self.blosum.get_similarity_score
-        self.gapInitCost = self.blosum.gapInitCost
-        self.gapExtendCost = self.blosum.gapExtendCost
-        return self.align(seqA, seqB)
 
     def align(self, seqA, seqB):
         """
