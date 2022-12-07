@@ -118,7 +118,7 @@ class GlobalAlignerBase:
 
         self.deletionMatrix = [[None for j in range(self.matrixWidth)] for i in range(self.matrixHeight)]
 
-        for j in range(1, self.matrixWidth):
+        for j in range(self.matrixWidth):
             self.deletionMatrix[0][j] = (self.alignmentMatrix[0][j][0] + self.gapInitCost, None)
 
 

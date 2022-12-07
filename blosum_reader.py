@@ -21,11 +21,12 @@ class BlosumReader:
     def __init__(self):
 
         # Fields are populated by the read_file() method
-        self.type = ""         # ex. "BLOSUM62"
-        self._headers = []     # [ Header1, Header2, ... ]
-        self._matrix = {}      # { LabelA: { LabelA: Score, LabelB: Score, ...}, LabelB: {...}, ...}
-        self.gapInitCost = 0        # Gap initiation cost
-        self.gapExtendCost = 0      # Gap extension cost
+        self.type = ""                   # ex. "BLOSUM62"
+        self._headers = []               # [ Header1, Header2, ... ]
+        self._similarityMatrix = {}      # { LabelA: { LabelA: Score, LabelB: Score, ...}, LabelB: {...}, ...}
+        self._distanceMatrix = {}        # { LabelA: { LabelA: Score, LabelB: Score, ...}, LabelB: {...}, ...}
+        self.gapInitCost = 0             # Gap initiation cost
+        self.gapExtendCost = 0           # Gap extension cost
 
 
     def _next_line(self, file):
@@ -50,8 +51,9 @@ class BlosumReader:
         """
         with open(path, 'r') as f:
             self._read_headers(f)
-            self._create_matrix()
-            nextLine = self._read_matrix(f)
+            self._init_matrices()
+            nextLine = self._read_similarity_matrix(f)
+            self._fill_distance_matrix()
             self._read_gaps(f, nextLine)
 
 
@@ -64,16 +66,18 @@ class BlosumReader:
         self._headers = self._next_line(f)      # Next non-empty line contains the column headers
 
 
-    def _create_matrix(self):
+    def _init_matrices(self):
         """
-        Create the initial matrix, using the header labels in member _headers.
+        Create the initial similarity and distance matrices, using the header labels in member _headers.
         """
-        self._matrix = {}
+        self._similarityMatrix = {}
+        self._distanceMatrix = {}
         for header in self._headers:
-            self._matrix[header] = {}
+            self._similarityMatrix[header] = {}
+            self._distanceMatrix[header] = {}
 
 
-    def _read_matrix(self, f):
+    def _read_similarity_matrix(self, f):
         """
         Reads the matrix from file f, storing the data in the hashtable member _matrix
         :param f: the file from which to read the matrix
@@ -92,16 +96,30 @@ class BlosumReader:
 
             for i in range(len(tokens)):
                 colLabel = self._headers[i]
-                self._matrix[rowLabel][colLabel] = int(tokens[i])
+                self._similarityMatrix[rowLabel][colLabel] = int(tokens[i])
 
                 if rowLabel != colLabel:
-                    self._matrix[colLabel][rowLabel] = int(tokens[i])
+                    self._similarityMatrix[colLabel][rowLabel] = int(tokens[i])
 
             # Skip empty lines and increment rowNum
             tokens = self._next_line(f)
             rowNum += 1
 
         return tokens
+
+    def _fill_distance_matrix(self):
+        """
+        Populate the distance matrix
+        """
+
+        for i in range(len(self._headers)):
+            for j in range(i, len(self._headers)):
+                a, b = self._headers[i], self._headers[j]
+                distanceScore = (self._similarityMatrix[a][a] + self._similarityMatrix[b][b]) / 2 - self._similarityMatrix[a][b]
+                self._distanceMatrix[a][b] = distanceScore
+
+                if a != b:
+                    self._distanceMatrix[b][a] = distanceScore
 
 
     def _read_gaps(self, f, firstLine):
@@ -132,7 +150,7 @@ class BlosumReader:
         :param b: a character representing an amino acid in the BLOSUM matrix
         :return: the BLOSUM similarity score of amino acids a and b
         """
-        return self._matrix[a][b]
+        return self._similarityMatrix[a][b]
 
 
     def get_distance_score(self, a, b):
@@ -142,5 +160,5 @@ class BlosumReader:
         :param b: a character representing an amino acid in the BLOSUM matrix
         :return: the BLOSUM distance score of amino acids a and b
         """
-        return (self._matrix[a][a] + self._matrix[b][b]) / 2 - self._matrix[a][b]
+        return self._distanceMatrix[a][b]
 

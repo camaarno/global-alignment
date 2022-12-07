@@ -16,7 +16,7 @@ from global_aligner_base import GlobalAlignerBase
 
 class GlobalDistanceAligner(GlobalAlignerBase):
     """
-    Computes similarity and distance alignments on provided sequences, using
+    Computes distance alignment on provided sequences, using
     the affine indel gap model fit sequence alignment
     """
 
