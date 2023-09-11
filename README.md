@@ -11,7 +11,7 @@ alignment, using the provided sequence strings and score values.
 
 ## Authors
 
-- [@carnol29](https://www.github.com/carnol29)
+- [@carnol29](https://www.github.com/carnol29) / [@ArnoCame](https://www.github.com/ArnoCame)
 - [@coom-slayer](https://www.github.com/coom-slayer)
 
 
